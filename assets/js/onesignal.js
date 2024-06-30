@@ -80,6 +80,7 @@ function deleteUser(email) {
 }
 
 function createNotif(users, status, payload) {
+    console.log('email notification starting');
     payload.inviting_date = moment(payload.inviting_date).format('DD MMMM YYYY');
     const headers = {
         'Authorization': 'Basic ' + onesignal.api_key,
@@ -99,7 +100,13 @@ function createNotif(users, status, payload) {
         dataType: 'json',
         headers: headers,
         crossDomain: true,
-        data: JSON.stringify(data)
+        data: JSON.stringify(data),
+        success: (res) => {
+            console.log(res);
+        },
+        error: (res) => {
+            console.log(res);
+        },
     });
 }
 
