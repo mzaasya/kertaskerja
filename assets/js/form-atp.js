@@ -1,11 +1,4 @@
 let dataSonumb;
-var onesignalAtp = {
-    url: 'https://api.onesignal.com/apps/',
-    url_notif: 'https://onesignal.com/api/v1/notifications',
-    app_id: "",
-    api_key: "",
-    template_id: ""
-}
 
 $(function () {
     const params = new URLSearchParams(window.location.search);
@@ -226,7 +219,7 @@ function createAtp(data) {
             setTimeout(() => {
                 if (users.length > 0) {
                     delete data.file;
-                    createNotifAtp(users, data.status, data);
+                    createNotif(users, data.status, data);
                 }
             }, 100);
         }
@@ -278,7 +271,7 @@ function updateAtp(sonumb, data) {
                 setTimeout(() => {
                     if (users.length > 0) {
                         delete data.file;
-                        createNotifAtp(users, data.status, data);
+                        createNotif(users, data.status, data);
                     }
                 }, 100);
             }
@@ -294,84 +287,4 @@ function updateAtp(sonumb, data) {
             }, 1000);
         }
     };
-}
-
-function createNotifAtp(users, status, payload) {
-    console.log('email notification starting');
-    payload.inviting_date = moment(payload.inviting_date).format('DD MMMM YYYY');
-    const headers = {
-        'Authorization': 'Basic ' + onesignalAtp.api_key,
-        'accept': 'application/json',
-        'content-type': 'application/json'
-    }
-    const data = {
-        app_id: onesignalAtp.app_id,
-        template_id: onesignalAtp.template_id,
-        channel_for_external_user_ids: 'email',
-        include_external_user_ids: users,
-        custom_data: emailData(status, payload)
-    }
-    $.ajax({
-        url: onesignalAtp.url_notif,
-        method: 'post',
-        dataType: 'json',
-        headers: headers,
-        crossDomain: true,
-        data: JSON.stringify(data),
-        success: (res) => {
-            console.log(res);
-        },
-        error: (res) => {
-            console.log(res);
-        },
-    });
-}
-
-function emailDataAtp(status, payload) {
-    const data = {
-        object: '',
-        header: '',
-        footer: '',
-        task: payload
-    }
-
-    switch (status) {
-        case 'invitation':
-            data['object'] = 'CME';
-            data['header'] = 'undangan ATP (Inviting ATP), berikut :';
-            data['footer'] = 'Mohon dibantu konfirmasi untuk ATP site berikut';
-            break;
-        case 'confirmation':
-            data['object'] = 'Vendor';
-            data['header'] = 'konfirmasi ATP (Confirmation ATP), berikut :';
-            data['footer'] = 'Mohon disiapkan semua keperluan ketika ATP on site';
-            break;
-        case 'on site':
-            data['object'] = 'Vendor';
-            data['header'] = 'konfirmasi ATP on site, berikut :';
-            data['footer'] = 'Mohon disiapkan semua keperluan saat ATP on site';
-            break;
-        case 'rejection':
-            data['object'] = 'Vendor';
-            data['header'] = 'rektifikasi ATP (Rectification ATP), berikut :';
-            data['footer'] = 'Mohon dilakukan perbaikan selambatnya H+3 setelah ATP on site';
-            break;
-        case 'rectification':
-            data['object'] = 'CME';
-            data['header'] = 'rektifikasi ATP (Rectification ATP) berikut telah diperbaiki';
-            data['footer'] = 'Mohon dilakukan pemeriksaan ATP yang telah diperbaiki';
-            break;
-        case 'system':
-            data['object'] = 'Vendor';
-            data['header'] = 'ATP site berikut diterima';
-            data['footer'] = 'Mohon dilakukan input system sesuai dengan format yang telah disetujui';
-            break;
-        case 'done':
-            data['object'] = 'Vendor';
-            data['header'] = 'ATP site berikut telah selesai';
-            data['footer'] = 'Terimakasih telah melakukan serangkaian kegiatan ATP dengan memperhatikan keselamatan kerja';
-            break;
-    }
-
-    return data;
 }

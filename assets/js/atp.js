@@ -91,7 +91,7 @@ $(function () {
 
         setTimeout(() => {
             setStatus({ sonumb, status, atp_date, note, file });
-        }, 100);
+        }, 500);
     });
 
     $('body').on('click', '.btn-delete', function (e) {
@@ -134,8 +134,8 @@ $(function () {
                                     title: 'ATP has been deleted'
                                 }));
                                 window.location.reload();
-                            }, 100);
-                        }, 100);
+                            }, 500);
+                        }, 500);
                     }
                 };
             }
@@ -286,7 +286,7 @@ $(function () {
                     dataTable.clear();
                     dataTable.rows.add(dataAtp);
                     dataTable.draw();
-                }, 100);
+                }, 1000);
             }
         };
     }
@@ -329,7 +329,7 @@ $(function () {
                         delete atp.file;
                         createNotif(users, status, atp);
                     }
-                }, 100);
+                }, 1000);
             }
             historyStore.add({
                 id: crypto.randomUUID(),
@@ -346,7 +346,7 @@ $(function () {
                     title: 'ATP status has been changed'
                 }));
                 window.location.reload();
-            }, 1000);
+            }, 2000);
         }
     }
 });
