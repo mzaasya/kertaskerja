@@ -12,20 +12,18 @@ function checkUser(email) {
         method: 'get',
         dataType: 'json',
         success: (res) => {
-            if (
-                res &&
-                res.subscriptions
-            ) {
+            console.log(res);
+            if (res.subscriptions) {
                 const emailSubs = _.find(res.subscriptions, { type: 'Email' });
-                if (
-                    emailSubs &&
-                    emailSubs.token != email
-                ) {
-                    createUser(email);
+                if (!emailSubs) {
+                    createSubscription(email);
                 }
+            } else {
+                createSubscription(email);
             }
         },
         error: (res) => {
+            console.log(res);
             if (res.status === 404) {
                 createUser(email);
             }
@@ -51,6 +49,36 @@ function createUser(email) {
     });
 }
 
+function createSubscription(email) {
+    const headers = {
+        'Authorization': 'Basic ' + onesignal.api_key,
+        'accept': 'application/json',
+        'content-type': 'application/json'
+    }
+    const data = {
+        subscription: {
+            type: 'Email',
+            token: email
+        }
+    }
+    $.ajax({
+        url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email + '/subscriptions',
+        method: 'post',
+        dataType: 'json',
+        headers: headers,
+        crossDomain: true,
+        data: JSON.stringify(data)
+    });
+}
+
+function deleteUser(email) {
+    $.ajax({
+        url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email,
+        method: 'delete',
+        dataType: 'json',
+    });
+}
+
 function createNotif(users, status, payload) {
     payload.inviting_date = moment(payload.inviting_date).format('DD MMMM YYYY');
     const headers = {
@@ -69,8 +97,8 @@ function createNotif(users, status, payload) {
         url: onesignal.url_notif,
         method: 'post',
         dataType: 'json',
-        crossDomain: true,
         headers: headers,
+        crossDomain: true,
         data: JSON.stringify(data)
     });
 }

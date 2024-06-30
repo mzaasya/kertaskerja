@@ -46,15 +46,9 @@ function generateDatabase() {
             const objectStore = db.transaction('users', 'readwrite').objectStore('users');
             objectStore.add({
                 name: 'Regional Sumbagsel',
-                email: 'hazukeil@gmail.com',
+                email: 'sintia.aulia@tower-bersama.com',
                 password: 'admin',
                 role: 'admin'
-            });
-            objectStore.add({
-                name: 'PT. ORLIE INDONESIA',
-                email: 'hanegusa@gmail.com',
-                password: 'member',
-                role: 'member'
             });
         }
 
