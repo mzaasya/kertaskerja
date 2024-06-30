@@ -221,7 +221,7 @@ function createAtp(data) {
                     delete data.file;
                     createNotif(users, data.status, data);
                 }
-            }, 100);
+            }, 1000);
         }
 
         setTimeout(() => {
@@ -230,7 +230,7 @@ function createAtp(data) {
                 title: 'ATP has been created'
             }));
             window.location.href = 'atp.html';
-        }, 1000);
+        }, 2000);
     };
 }
 
@@ -273,7 +273,7 @@ function updateAtp(sonumb, data) {
                         delete data.file;
                         createNotif(users, data.status, data);
                     }
-                }, 100);
+                }, 1000);
             }
 
             atpStore.put(data);
@@ -284,7 +284,7 @@ function updateAtp(sonumb, data) {
                     title: 'ATP has been updated'
                 }));
                 window.location.href = 'atp.html';
-            }, 1000);
+            }, 2000);
         }
     };
 }
