@@ -6,157 +6,155 @@ var onesignal = {
     template_id: ""
 }
 
-$(function() {
-    function checkUser(email) {
-        $.ajax({
-            url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email,
-            method: 'get',
-            dataType: 'json',
-            success: (res) => {
-                console.log(res);
-                if (res.subscriptions) {
-                    const emailSubs = _.find(res.subscriptions, { type: 'Email' });
-                    if (!emailSubs) {
-                        createSubscription(email);
-                    }
-                } else {
+function checkUser(email) {
+    $.ajax({
+        url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email,
+        method: 'get',
+        dataType: 'json',
+        success: (res) => {
+            console.log(res);
+            if (res.subscriptions) {
+                const emailSubs = _.find(res.subscriptions, { type: 'Email' });
+                if (!emailSubs) {
                     createSubscription(email);
                 }
-            },
-            error: (res) => {
-                console.log(res);
-                if (res.status === 404) {
-                    createUser(email);
-                }
+            } else {
+                createSubscription(email);
             }
-        });
-    }
-    
-    function createUser(email) {
-        const data = {
-            identity: {
-                external_id: email
-            },
-            subscriptions: [{
-                type: 'Email',
-                token: email
-            }]
-        }
-        $.ajax({
-            url: onesignal.url + onesignal.app_id + '/users',
-            method: 'post',
-            dataType: 'json',
-            data: JSON.stringify(data)
-        });
-    }
-    
-    function createSubscription(email) {
-        const headers = {
-            'Authorization': 'Basic ' + onesignal.api_key,
-            'accept': 'application/json',
-            'content-type': 'application/json'
-        }
-        const data = {
-            subscription: {
-                type: 'Email',
-                token: email
+        },
+        error: (res) => {
+            console.log(res);
+            if (res.status === 404) {
+                createUser(email);
             }
         }
-        $.ajax({
-            url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email + '/subscriptions',
-            method: 'post',
-            dataType: 'json',
-            headers: headers,
-            crossDomain: true,
-            data: JSON.stringify(data)
-        });
+    });
+}
+
+function createUser(email) {
+    const data = {
+        identity: {
+            external_id: email
+        },
+        subscriptions: [{
+            type: 'Email',
+            token: email
+        }]
     }
-    
-    function deleteUser(email) {
-        $.ajax({
-            url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email,
-            method: 'delete',
-            dataType: 'json',
-        });
+    $.ajax({
+        url: onesignal.url + onesignal.app_id + '/users',
+        method: 'post',
+        dataType: 'json',
+        data: JSON.stringify(data)
+    });
+}
+
+function createSubscription(email) {
+    const headers = {
+        'Authorization': 'Basic ' + onesignal.api_key,
+        'accept': 'application/json',
+        'content-type': 'application/json'
     }
-    
-    function createNotif(users, status, payload) {
-        console.log('email notification starting');
-        payload.inviting_date = moment(payload.inviting_date).format('DD MMMM YYYY');
-        const headers = {
-            'Authorization': 'Basic ' + onesignal.api_key,
-            'accept': 'application/json',
-            'content-type': 'application/json'
+    const data = {
+        subscription: {
+            type: 'Email',
+            token: email
         }
-        const data = {
-            app_id: onesignal.app_id,
-            template_id: onesignal.template_id,
-            channel_for_external_user_ids: 'email',
-            include_external_user_ids: users,
-            custom_data: emailData(status, payload)
-        }
-        $.ajax({
-            url: onesignal.url_notif,
-            method: 'post',
-            dataType: 'json',
-            headers: headers,
-            crossDomain: true,
-            data: JSON.stringify(data),
-            success: (res) => {
-                console.log(res);
-            },
-            error: (res) => {
-                console.log(res);
-            },
-        });
     }
-    
-    function emailData(status, payload) {
-        const data = {
-            object: '',
-            header: '',
-            footer: '',
-            task: payload
-        }
-    
-        switch (status) {
-            case 'invitation':
-                data['object'] = 'CME';
-                data['header'] = 'undangan ATP (Inviting ATP), berikut :';
-                data['footer'] = 'Mohon dibantu konfirmasi untuk ATP site berikut';
-                break;
-            case 'confirmation':
-                data['object'] = 'Vendor';
-                data['header'] = 'konfirmasi ATP (Confirmation ATP), berikut :';
-                data['footer'] = 'Mohon disiapkan semua keperluan ketika ATP on site';
-                break;
-            case 'on site':
-                data['object'] = 'Vendor';
-                data['header'] = 'konfirmasi ATP on site, berikut :';
-                data['footer'] = 'Mohon disiapkan semua keperluan saat ATP on site';
-                break;
-            case 'rejection':
-                data['object'] = 'Vendor';
-                data['header'] = 'rektifikasi ATP (Rectification ATP), berikut :';
-                data['footer'] = 'Mohon dilakukan perbaikan selambatnya H+3 setelah ATP on site';
-                break;
-            case 'rectification':
-                data['object'] = 'CME';
-                data['header'] = 'rektifikasi ATP (Rectification ATP) berikut telah diperbaiki';
-                data['footer'] = 'Mohon dilakukan pemeriksaan ATP yang telah diperbaiki';
-                break;
-            case 'system':
-                data['object'] = 'Vendor';
-                data['header'] = 'ATP site berikut diterima';
-                data['footer'] = 'Mohon dilakukan input system sesuai dengan format yang telah disetujui';
-                break;
-            case 'done':
-                data['object'] = 'Vendor';
-                data['header'] = 'ATP site berikut telah selesai';
-                data['footer'] = 'Terimakasih telah melakukan serangkaian kegiatan ATP dengan memperhatikan keselamatan kerja';
-                break;
-        }
-    
-        return data;
+    $.ajax({
+        url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email + '/subscriptions',
+        method: 'post',
+        dataType: 'json',
+        headers: headers,
+        crossDomain: true,
+        data: JSON.stringify(data)
+    });
+}
+
+function deleteUser(email) {
+    $.ajax({
+        url: onesignal.url + onesignal.app_id + '/users/by/external_id/' + email,
+        method: 'delete',
+        dataType: 'json',
+    });
+}
+
+function createNotif(users, status, payload) {
+    console.log('email notification starting');
+    payload.inviting_date = moment(payload.inviting_date).format('DD MMMM YYYY');
+    const headers = {
+        'Authorization': 'Basic ' + onesignal.api_key,
+        'accept': 'application/json',
+        'content-type': 'application/json'
     }
-});
+    const data = {
+        app_id: onesignal.app_id,
+        template_id: onesignal.template_id,
+        channel_for_external_user_ids: 'email',
+        include_external_user_ids: users,
+        custom_data: emailData(status, payload)
+    }
+    $.ajax({
+        url: onesignal.url_notif,
+        method: 'post',
+        dataType: 'json',
+        headers: headers,
+        crossDomain: true,
+        data: JSON.stringify(data),
+        success: (res) => {
+            console.log(res);
+        },
+        error: (res) => {
+            console.log(res);
+        },
+    });
+}
+
+function emailData(status, payload) {
+    const data = {
+        object: '',
+        header: '',
+        footer: '',
+        task: payload
+    }
+
+    switch (status) {
+        case 'invitation':
+            data['object'] = 'CME';
+            data['header'] = 'undangan ATP (Inviting ATP), berikut :';
+            data['footer'] = 'Mohon dibantu konfirmasi untuk ATP site berikut';
+            break;
+        case 'confirmation':
+            data['object'] = 'Vendor';
+            data['header'] = 'konfirmasi ATP (Confirmation ATP), berikut :';
+            data['footer'] = 'Mohon disiapkan semua keperluan ketika ATP on site';
+            break;
+        case 'on site':
+            data['object'] = 'Vendor';
+            data['header'] = 'konfirmasi ATP on site, berikut :';
+            data['footer'] = 'Mohon disiapkan semua keperluan saat ATP on site';
+            break;
+        case 'rejection':
+            data['object'] = 'Vendor';
+            data['header'] = 'rektifikasi ATP (Rectification ATP), berikut :';
+            data['footer'] = 'Mohon dilakukan perbaikan selambatnya H+3 setelah ATP on site';
+            break;
+        case 'rectification':
+            data['object'] = 'CME';
+            data['header'] = 'rektifikasi ATP (Rectification ATP) berikut telah diperbaiki';
+            data['footer'] = 'Mohon dilakukan pemeriksaan ATP yang telah diperbaiki';
+            break;
+        case 'system':
+            data['object'] = 'Vendor';
+            data['header'] = 'ATP site berikut diterima';
+            data['footer'] = 'Mohon dilakukan input system sesuai dengan format yang telah disetujui';
+            break;
+        case 'done':
+            data['object'] = 'Vendor';
+            data['header'] = 'ATP site berikut telah selesai';
+            data['footer'] = 'Terimakasih telah melakukan serangkaian kegiatan ATP dengan memperhatikan keselamatan kerja';
+            break;
+    }
+
+    return data;
+}
